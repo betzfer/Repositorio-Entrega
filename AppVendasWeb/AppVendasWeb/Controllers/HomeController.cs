@@ -2,6 +2,7 @@ using AppVendasWeb.Data;
 using AppVendasWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 
 namespace AppVendasWeb.Controllers
@@ -29,6 +30,7 @@ namespace AppVendasWeb.Controllers
             ViewData["ListaClientes"] = listaClientes;
             ViewData["ListaProdutos"] = listaProdutos;
             ViewData["ClienteSelecionado"] = "Nenhum cliente selecionado";
+            ViewData["IdSelecionado"] = "Nenhum cliente selecionado";
             return View();
         }
 
@@ -42,6 +44,7 @@ namespace AppVendasWeb.Controllers
             if (cliente != null)
             {
                 ViewData["ClienteSelecionado"] = cliente.ClienteNome;
+                ViewData["IdSelecionado"] = cliente.ClienteId;
             }
             return View("IniciarVenda");
         }
@@ -58,6 +61,35 @@ namespace AppVendasWeb.Controllers
                 ViewData["ProdutoSelecionado"] = produto;
             }
             return View("IniciarVenda");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> IniciarVenda(
+            [Bind("NovaVendaId,DataVenda,ValorTotal,NotaFiscal,ClienteId,TotalProdutos, TotalDesconto, PercentualDesconto,TotalFinal")]
+                NovaVenda novaVenda)
+        {
+            List<Cliente> listaClientes = _context.Cliente.Where(c => c.CadastroAtivo == true).ToList();
+            List<Produto> listaProdutos = _context.Produtos.OrderBy(p => p.Descricao).ToList();
+            ViewData["ListaClientes"] = listaClientes;
+            ViewData["ListaProdutos"] = listaProdutos;
+
+            if (novaVenda.ClienteId.ToString() == "00000000-0000-0000-0000-000000000000")
+            {
+                return View("IniciarVenda");
+            }
+
+            novaVenda.NovaVendaId = Guid.NewGuid();
+            novaVenda.Cliente = _context.Cliente.FirstOrDefault(c => c.ClienteId == novaVenda.ClienteId);
+            var ultimaNotaFiscal = _context.NovaVendas.Max(v => v.NotaFiscal);
+            if (ultimaNotaFiscal == null)
+            {
+                ultimaNotaFiscal = 0;
+            }
+            novaVenda.NotaFiscal = ultimaNotaFiscal + 1;
+            _context.Add(novaVenda);
+            await _context.SaveChangesAsync();
+
+            return View("IniciarVenda", novaVenda);
         }
 
         public IActionResult Privacy()

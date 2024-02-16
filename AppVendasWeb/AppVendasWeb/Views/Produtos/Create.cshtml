@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Create";
+    List<Categoria> listaCategoria = (List<Categoria>)ViewData["ListaCategoria"];
+
+    ViewData["CategoriaId"] = new SelectList(listaCategoria, "CategoriaId", "CategoriaNome");
 }
 
 <h1>Create</h1>
@@ -12,6 +15,7 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="Descricao" class="control-label"></label>
                 <input asp-for="Descricao" class="form-control" />
@@ -23,13 +27,64 @@
                 <span asp-validation-for="Preco" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoriaId" class="control-label"></label>
-                <select asp-for="CategoriaId" class="form-control" asp-items="ViewBag.CategoriaId"></select>
+                <div class="input-group mb-3">
+                    <input id="CategoriaId" name="CategoriaId" class="form-control p-2 py-3 rounded-end" value="@ViewData["ClienteSelecionado"]" readonly />
+                    <button type="button" class="btn btn-outline-light p-2 py-3" data-bs-toggle="modal" data-bs-target="#janelaCliente">
+                        <svg bootstrap-icon="Search" width="20" height="20" aria-label="Pesquisar"></svg> Buscar Categoria
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
+
         </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="janelaCliente" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content bg-dark bg-gradient text-light">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Selecione o Cliente</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="buscaCliente"
+                               placeholder="Pesquisar por nome" aria-label="Pesquisar por nome"
+                               aria-describedby="button-addon2">
+                        <a class="btn btn-outline-light" id="button-addon2">
+                            <svg bootstrap-icon="Search" width="16" height="16" aria-label="Pesquisar"></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover" id="tabelaClientes">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Categorias
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in listaCategoria)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.CategoriaNome)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -42,3 +97,4 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+
